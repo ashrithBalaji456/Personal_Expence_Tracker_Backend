@@ -22,7 +22,8 @@ public class CorsConfig {
                 "http://localhost:8080",
                 "https://*.onrender.com",
                 "https://*.netlify.app",
-                "https://*.vercel.app"
+                "https://*.vercel.app",
+                "https://personal-expence-tracker-frontend.vercel.app"
         ));
         
         config.setAllowedHeaders(Arrays.asList(
