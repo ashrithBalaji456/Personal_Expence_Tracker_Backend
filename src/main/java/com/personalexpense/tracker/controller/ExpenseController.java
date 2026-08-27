@@ -2,7 +2,7 @@ package com.personalexpense.tracker.controller;
 
 import com.personalexpense.tracker.dto.ExpenseRequest;
 import com.personalexpense.tracker.dto.ExpenseResponse;
-import com.personalexpense.tracker.entity.Category;
+
 import com.personalexpense.tracker.service.ExpenseService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -66,7 +66,7 @@ public class ExpenseController {
 
     @GetMapping("/category/{category}")
     @Operation(summary = "Filter expenses by category", description = "Returns authenticated user's expenses matching the category enum.")
-    public ResponseEntity<List<ExpenseResponse>> getExpensesByCategory(@PathVariable Category category) {
+    public ResponseEntity<List<ExpenseResponse>> getExpensesByCategory(@PathVariable String category) {
         List<ExpenseResponse> response = expenseService.getExpensesByCategory(category);
         return ResponseEntity.ok(response);
     }

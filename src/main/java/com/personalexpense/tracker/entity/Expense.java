@@ -30,9 +30,8 @@ public class Expense {
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal amount;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Category category;
+    private String category;
 
     @Column(name = "expense_date", nullable = false)
     private LocalDate expenseDate;

@@ -4,7 +4,9 @@ import com.personalexpense.tracker.dto.CategorySpendingDto;
 import com.personalexpense.tracker.dto.DashboardResponse;
 import com.personalexpense.tracker.dto.DailySpendingDto;
 import com.personalexpense.tracker.dto.ExpenseResponse;
-import com.personalexpense.tracker.entity.Category;
+import com.personalexpense.tracker.repository.BudgetCategoryRepository;
+import com.personalexpense.tracker.entity.BudgetCategory;
+import java.util.HashMap;
 import com.personalexpense.tracker.entity.Expense;
 import com.personalexpense.tracker.entity.User;
 import com.personalexpense.tracker.exception.ResourceNotFoundException;
@@ -21,10 +23,17 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.TemporalAdjusters;
-import java.util.EnumMap;
+
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import com.personalexpense.tracker.repository.MonthlyIncomeRepository;
+import com.personalexpense.tracker.entity.MonthlyIncome;
+import java.time.YearMonth;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +41,8 @@ public class DashboardServiceImpl implements DashboardService {
 
     private final ExpenseRepository expenseRepository;
     private final UserRepository userRepository;
+    private final BudgetCategoryRepository budgetCategoryRepository;
+    private final MonthlyIncomeRepository monthlyIncomeRepository;
 
     private User getAuthenticatedUser() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -67,9 +78,10 @@ public class DashboardServiceImpl implements DashboardService {
 
         // Category breakdown
         List<CategorySpendingDto> categoryList = expenseRepository.findCategorySpendingByUserAndDateBetween(user, epochStart, farFutureEnd);
-        Map<Category, BigDecimal> categoryBreakdown = new EnumMap<>(Category.class);
-        for (Category cat : Category.values()) {
-            categoryBreakdown.put(cat, BigDecimal.ZERO);
+        Map<String, BigDecimal> categoryBreakdown = new HashMap<>();
+        List<BudgetCategory> userCategories = budgetCategoryRepository.findByUser(user);
+        for (BudgetCategory cat : userCategories) {
+            categoryBreakdown.put(cat.getName(), BigDecimal.ZERO);
         }
         for (CategorySpendingDto dto : categoryList) {
             categoryBreakdown.put(dto.getCategory(), dto.getAmount());
@@ -85,6 +97,24 @@ public class DashboardServiceImpl implements DashboardService {
                 .map(this::mapToResponse)
                 .toList();
 
+        // Compute lifetime savings
+        List<Expense> allExpenses = expenseRepository.findByUserOrderByExpenseDateDescCreatedAtDesc(user);
+        List<MonthlyIncome> allIncomes = monthlyIncomeRepository.findByUserOrderByMonthAsc(user);
+        Set<String> activeMonths = new HashSet<>();
+        for (MonthlyIncome mi : allIncomes) {
+            activeMonths.add(mi.getMonth());
+        }
+        for (Expense e : allExpenses) {
+            activeMonths.add(e.getExpenseDate().toString().substring(0, 7)); // "yyyy-MM"
+        }
+        activeMonths.add(YearMonth.now().toString());
+
+        BigDecimal totalLifetimeIncome = BigDecimal.ZERO;
+        for (String month : activeMonths) {
+            totalLifetimeIncome = totalLifetimeIncome.add(resolveMonthlyIncomeAmount(user, month, allIncomes));
+        }
+        BigDecimal lifetimeSavings = totalLifetimeIncome.subtract(totalSpent);
+
         return DashboardResponse.builder()
                 .totalSpent(totalSpent)
                 .todaySpent(todaySpent)
@@ -92,10 +122,26 @@ public class DashboardServiceImpl implements DashboardService {
                 .last3DaysSpent(last3DaysSpent)
                 .currentWeekSpent(currentWeekSpent)
                 .currentMonthSpent(currentMonthSpent)
+                .lifetimeSavings(lifetimeSavings)
                 .categoryBreakdown(categoryBreakdown)
                 .dailyBreakdown(dailyBreakdown)
                 .recentExpenses(recentExpenses)
                 .build();
+    }
+
+    private BigDecimal resolveMonthlyIncomeAmount(User user, String targetMonth, List<MonthlyIncome> allIncomes) {
+        Optional<MonthlyIncome> exactMatch = allIncomes.stream()
+                .filter(i -> i.getMonth().equals(targetMonth))
+                .findFirst();
+        if (exactMatch.isPresent()) {
+            return exactMatch.get().getAmount();
+        }
+        
+        return allIncomes.stream()
+                .filter(i -> i.getMonth().compareTo(targetMonth) <= 0)
+                .max((a, b) -> a.getMonth().compareTo(b.getMonth()))
+                .map(MonthlyIncome::getAmount)
+                .orElse(BigDecimal.ZERO);
     }
 
     private ExpenseResponse mapToResponse(Expense expense) {

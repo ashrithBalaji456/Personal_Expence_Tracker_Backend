@@ -2,7 +2,7 @@ package com.personalexpense.tracker.service;
 
 import com.personalexpense.tracker.dto.ExpenseRequest;
 import com.personalexpense.tracker.dto.ExpenseResponse;
-import com.personalexpense.tracker.entity.Category;
+
 import org.springframework.data.domain.Page;
 
 import java.time.LocalDate;
@@ -20,7 +20,7 @@ public interface ExpenseService {
 
     void deleteExpense(Long id);
 
-    List<ExpenseResponse> getExpensesByCategory(Category category);
+    List<ExpenseResponse> getExpensesByCategory(String category);
 
     List<ExpenseResponse> getExpensesByDate(LocalDate date);
 

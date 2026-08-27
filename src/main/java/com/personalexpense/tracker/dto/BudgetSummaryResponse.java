@@ -1,19 +1,18 @@
 package com.personalexpense.tracker.dto;
 
-
 import lombok.*;
-
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Map;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class MonthlyAnalyticsDto {
+public class BudgetSummaryResponse {
     private String month;
+    private BigDecimal totalIncome;
+    private BigDecimal totalBudgeted;
     private BigDecimal totalSpent;
-    private List<DailySpendingDto> dailySpending;
-    private Map<String, BigDecimal> categorySpending;
+    private BigDecimal overallRemaining;
+    private List<CategoryBudgetSummary> categories;
 }

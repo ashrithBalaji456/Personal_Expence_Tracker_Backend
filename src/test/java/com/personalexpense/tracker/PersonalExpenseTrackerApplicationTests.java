@@ -2,9 +2,11 @@ package com.personalexpense.tracker;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.personalexpense.tracker.dto.*;
-import com.personalexpense.tracker.entity.Category;
+
 import com.personalexpense.tracker.repository.ExpenseRepository;
 import com.personalexpense.tracker.repository.UserRepository;
+import com.personalexpense.tracker.repository.BudgetCategoryRepository;
+import com.personalexpense.tracker.repository.MonthlyIncomeRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,11 +37,19 @@ public class PersonalExpenseTrackerApplicationTests {
     private ExpenseRepository expenseRepository;
 
     @Autowired
+    private BudgetCategoryRepository budgetCategoryRepository;
+
+    @Autowired
+    private MonthlyIncomeRepository monthlyIncomeRepository;
+
+    @Autowired
     private ObjectMapper objectMapper;
 
     @BeforeEach
     public void setup() {
         expenseRepository.deleteAll();
+        budgetCategoryRepository.deleteAll();
+        monthlyIncomeRepository.deleteAll();
         userRepository.deleteAll();
     }
 
@@ -145,7 +155,7 @@ public class PersonalExpenseTrackerApplicationTests {
         ExpenseRequest expenseReq = ExpenseRequest.builder()
                 .title("A's Lunch")
                 .amount(BigDecimal.valueOf(15.50))
-                .category(Category.FOOD)
+                .category("Groceries")
                 .expenseDate(LocalDate.now())
                 .notes("Tasty lunch")
                 .build();
@@ -177,7 +187,7 @@ public class PersonalExpenseTrackerApplicationTests {
         ExpenseRequest updateReq = ExpenseRequest.builder()
                 .title("Hacked Lunch")
                 .amount(BigDecimal.valueOf(100.00))
-                .category(Category.TRAVEL)
+                .category("Travel & Commute")
                 .expenseDate(LocalDate.now())
                 .notes("Hacked")
                 .build();
@@ -195,7 +205,7 @@ public class PersonalExpenseTrackerApplicationTests {
                 .content(objectMapper.writeValueAsString(updateReq)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("Hacked Lunch"))
-                .andExpect(jsonPath("$.category").value("TRAVEL"))
+                .andExpect(jsonPath("$.category").value("Travel & Commute"))
                 .andExpect(jsonPath("$.amount").value(100.00));
 
         // 7. User B tries to delete User A's expense -> should return 404
@@ -236,21 +246,21 @@ public class PersonalExpenseTrackerApplicationTests {
         ExpenseRequest todayExp = ExpenseRequest.builder()
                 .title("Food Today")
                 .amount(BigDecimal.valueOf(100.00))
-                .category(Category.FOOD)
+                .category("Groceries")
                 .expenseDate(today)
                 .build();
 
         ExpenseRequest yesterdayExp = ExpenseRequest.builder()
                 .title("Travel Yesterday")
                 .amount(BigDecimal.valueOf(250.00))
-                .category(Category.TRAVEL)
+                .category("Travel & Commute")
                 .expenseDate(today.minusDays(1))
                 .build();
 
         ExpenseRequest lastWeekExp = ExpenseRequest.builder()
                 .title("Personal Last Week")
                 .amount(BigDecimal.valueOf(50.00))
-                .category(Category.PERSONAL)
+                .category("Other Expenses")
                 .expenseDate(today.minusDays(7))
                 .build();
 
@@ -265,17 +275,17 @@ public class PersonalExpenseTrackerApplicationTests {
                 .andExpect(jsonPath("$.totalSpent").value(400.00))
                 .andExpect(jsonPath("$.todaySpent").value(100.00))
                 .andExpect(jsonPath("$.yesterdaySpent").value(250.00))
-                .andExpect(jsonPath("$.categoryBreakdown.FOOD").value(100.00))
-                .andExpect(jsonPath("$.categoryBreakdown.TRAVEL").value(250.00))
-                .andExpect(jsonPath("$.categoryBreakdown.PERSONAL").value(50.00));
+                .andExpect(jsonPath("$.categoryBreakdown.Groceries").value(100.00))
+                .andExpect(jsonPath("$.categoryBreakdown['Travel & Commute']").value(250.00))
+                .andExpect(jsonPath("$.categoryBreakdown['Other Expenses']").value(50.00));
 
         // Test Analytics - custom spending range
         mockMvc.perform(get("/api/analytics/spending?startDate=" + today.minusDays(1) + "&endDate=" + today)
                 .header("Authorization", token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalSpent").value(350.00))
-                .andExpect(jsonPath("$.categorySpending.FOOD").value(100.00))
-                .andExpect(jsonPath("$.categorySpending.TRAVEL").value(250.00));
+                .andExpect(jsonPath("$.categorySpending.Groceries").value(100.00))
+                .andExpect(jsonPath("$.categorySpending['Travel & Commute']").value(250.00));
 
         // Test Analytics - last 3 days
         mockMvc.perform(get("/api/analytics/last-3-days")

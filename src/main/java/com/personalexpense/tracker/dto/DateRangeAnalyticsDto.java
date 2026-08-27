@@ -1,6 +1,6 @@
 package com.personalexpense.tracker.dto;
 
-import com.personalexpense.tracker.entity.Category;
+
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -17,5 +17,5 @@ public class DateRangeAnalyticsDto {
     private LocalDate endDate;
     private BigDecimal totalSpent;
     private List<DailySpendingDto> dailySpending;
-    private Map<Category, BigDecimal> categorySpending;
+    private Map<String, BigDecimal> categorySpending;
 }

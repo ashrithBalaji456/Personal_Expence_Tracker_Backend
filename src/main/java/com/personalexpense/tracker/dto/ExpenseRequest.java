@@ -1,6 +1,6 @@
 package com.personalexpense.tracker.dto;
 
-import com.personalexpense.tracker.entity.Category;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -23,7 +23,7 @@ public class ExpenseRequest {
     private BigDecimal amount;
 
     @NotNull(message = "Category is required")
-    private Category category;
+    private String category;
 
     @NotNull(message = "Expense date is required")
     private LocalDate expenseDate;

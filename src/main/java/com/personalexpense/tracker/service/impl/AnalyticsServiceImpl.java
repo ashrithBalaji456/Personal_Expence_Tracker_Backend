@@ -1,7 +1,8 @@
 package com.personalexpense.tracker.service.impl;
 
 import com.personalexpense.tracker.dto.*;
-import com.personalexpense.tracker.entity.Category;
+import com.personalexpense.tracker.repository.BudgetCategoryRepository;
+import com.personalexpense.tracker.entity.BudgetCategory;
 import com.personalexpense.tracker.entity.User;
 import com.personalexpense.tracker.exception.ResourceNotFoundException;
 import com.personalexpense.tracker.repository.ExpenseRepository;
@@ -27,6 +28,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
     private final ExpenseRepository expenseRepository;
     private final UserRepository userRepository;
+    private final BudgetCategoryRepository budgetCategoryRepository;
 
     private User getAuthenticatedUser() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -34,10 +36,11 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 .orElseThrow(() -> new ResourceNotFoundException("Authenticated user not found."));
     }
 
-    private Map<Category, BigDecimal> getCategoryMap(List<CategorySpendingDto> dtos) {
-        Map<Category, BigDecimal> categoryMap = new EnumMap<>(Category.class);
-        for (Category cat : Category.values()) {
-            categoryMap.put(cat, BigDecimal.ZERO);
+    private Map<String, BigDecimal> getCategoryMap(User user, List<CategorySpendingDto> dtos) {
+        Map<String, BigDecimal> categoryMap = new HashMap<>();
+        List<BudgetCategory> userCategories = budgetCategoryRepository.findByUser(user);
+        for (BudgetCategory cat : userCategories) {
+            categoryMap.put(cat.getName(), BigDecimal.ZERO);
         }
         for (CategorySpendingDto dto : dtos) {
             categoryMap.put(dto.getCategory(), dto.getAmount());
@@ -62,7 +65,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 .endDate(end)
                 .totalSpent(totalSpent)
                 .dailySpending(dailySpending)
-                .categorySpending(getCategoryMap(categoryList))
+                .categorySpending(getCategoryMap(user, categoryList))
                 .build();
     }
 
@@ -120,7 +123,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 .weekEnd(weekEnd)
                 .totalSpent(totalSpent)
                 .dailySpending(dailySpending)
-                .categorySpending(getCategoryMap(categoryList))
+                .categorySpending(getCategoryMap(user, categoryList))
                 .build();
     }
 
@@ -153,7 +156,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 .month(monthString)
                 .totalSpent(totalSpent)
                 .dailySpending(dailySpending)
-                .categorySpending(getCategoryMap(categoryList))
+                .categorySpending(getCategoryMap(user, categoryList))
                 .build();
     }
 

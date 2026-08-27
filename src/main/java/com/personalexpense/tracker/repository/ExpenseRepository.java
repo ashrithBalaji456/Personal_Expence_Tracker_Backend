@@ -2,7 +2,7 @@ package com.personalexpense.tracker.repository;
 
 import com.personalexpense.tracker.dto.CategorySpendingDto;
 import com.personalexpense.tracker.dto.DailySpendingDto;
-import com.personalexpense.tracker.entity.Category;
+
 import com.personalexpense.tracker.entity.Expense;
 import com.personalexpense.tracker.entity.User;
 import org.springframework.data.domain.Page;
@@ -24,7 +24,7 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
 
     Optional<Expense> findByIdAndUser(Long id, User user);
 
-    List<Expense> findByUserAndCategoryOrderByExpenseDateDescCreatedAtDesc(User user, Category category);
+    List<Expense> findByUserAndCategoryOrderByExpenseDateDescCreatedAtDesc(User user, String category);
 
     List<Expense> findByUserAndExpenseDateOrderByCreatedAtDesc(User user, LocalDate date);
 

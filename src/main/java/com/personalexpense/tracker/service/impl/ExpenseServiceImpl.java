@@ -2,7 +2,7 @@ package com.personalexpense.tracker.service.impl;
 
 import com.personalexpense.tracker.dto.ExpenseRequest;
 import com.personalexpense.tracker.dto.ExpenseResponse;
-import com.personalexpense.tracker.entity.Category;
+
 import com.personalexpense.tracker.entity.Expense;
 import com.personalexpense.tracker.entity.User;
 import com.personalexpense.tracker.exception.ResourceNotFoundException;
@@ -98,7 +98,7 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ExpenseResponse> getExpensesByCategory(Category category) {
+    public List<ExpenseResponse> getExpensesByCategory(String category) {
         User user = getAuthenticatedUser();
         return expenseRepository.findByUserAndCategoryOrderByExpenseDateDescCreatedAtDesc(user, category).stream()
                 .map(this::mapToResponse)

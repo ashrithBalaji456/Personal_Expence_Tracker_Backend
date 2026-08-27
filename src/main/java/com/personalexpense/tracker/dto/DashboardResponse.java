@@ -1,6 +1,6 @@
 package com.personalexpense.tracker.dto;
 
-import com.personalexpense.tracker.entity.Category;
+
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -18,7 +18,8 @@ public class DashboardResponse {
     private BigDecimal last3DaysSpent;
     private BigDecimal currentWeekSpent;
     private BigDecimal currentMonthSpent;
-    private Map<Category, BigDecimal> categoryBreakdown;
+    private BigDecimal lifetimeSavings;
+    private Map<String, BigDecimal> categoryBreakdown;
     private List<DailySpendingDto> dailyBreakdown;
     private List<ExpenseResponse> recentExpenses;
 }
