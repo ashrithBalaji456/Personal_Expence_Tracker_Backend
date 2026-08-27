@@ -145,6 +145,7 @@ public class BudgetServiceImpl implements BudgetService {
     public List<BudgetCategoryResponse> resetToDefaults() {
         User user = getAuthenticatedUser();
         budgetCategoryRepository.deleteByUser(user);
+        budgetCategoryRepository.flush();
 
         List<BudgetCategory> defaults = Arrays.asList(
             BudgetCategory.builder().user(user).name("Rent").percentage(BigDecimal.valueOf(22)).color("#EC4899").icon("Home").build(),
