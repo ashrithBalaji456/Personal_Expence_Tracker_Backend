@@ -139,7 +139,6 @@ sequenceDiagram
     participant JWT as 🎫 JwtUtil
     participant D as 🐘 Database
 
-    rect rgb(235, 248, 255)
     Note over U,D: Registration
     U->>AC: POST /api/auth/register
     AC->>AS: registerUser(dto)
@@ -155,9 +154,7 @@ sequenceDiagram
     JWT-->>AS: signed JWT (HS256)
     AS-->>AC: AuthResponse{token, user}
     AC-->>U: 200 OK
-    end
 
-    rect rgb(255, 245, 235)
     Note over U,D: Login
     U->>AC: POST /api/auth/login
     AC->>AS: authenticate(dto)
@@ -173,7 +170,6 @@ sequenceDiagram
         JWT-->>AS: signed JWT
         AS-->>AC: AuthResponse{token, user}
         AC-->>U: 200 OK
-    end
     end
 ```
 
@@ -230,7 +226,6 @@ sequenceDiagram
     S->>DB: Query user budget categories
     DB-->>S: [Rent, Groceries, ...]
 
-    rect rgb(240, 255, 244)
     Note over S: 🔄 Loop months chronologically to resolve carryovers
     loop for each month prior to targetMonth
         S->>DB: Get resolved income for month
@@ -238,7 +233,6 @@ sequenceDiagram
         S->>S: allocated = income × category.percentage
         S->>S: net = allocated − spent
         S->>S: cumulativeBalance += net
-    end
     end
 
     S-->>C: BudgetSummaryResponse (carryovers + net balances)
